@@ -1,0 +1,64 @@
+Writing Code that passes the  test
+
+When a test fails, in this case bcs we always return an empty vector. To fix that and implement 'search', our program needs to follow these steps:
+
+1. Iterate through each line of the contents
+2. Check whether the line contains our query string
+3. If it does, add it to the list of values we're returning
+4. If it doesn't, do nothing.
+5. Return the list of results that match.
+
+Lets work through each step, starting with iterating through the lines.
+
+* Iterating Through the Lines with the 'lines Method
+
+Rust has a helpful method to handle line-by-line iteration of strings, conveniently named 'lines'.
+
+(This code won't compile yet)
+
+(Filename: src/lib.rs )
+
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    for line in contents.lines() {
+        // do something with line
+    }
+}
+
+The 'lines' method returns an iterator. 
+
+SEACHING Each Line for the query
+
+Next, we check whether the current line contains our query string. Fortunately, strings have a helpful method named 'contains' that does this for us. Add a call to the 'contains' method in 'search' function - the below code still won't compile yet.
+
+Filename: src/lib.rs
+
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    for line in contents.lines() {
+        if line.contains(query) {
+           
+            // do something with line
+        }
+
+    }
+} // This code adds functionality to see whether the line contains the string in query.
+
+At the moment, we are building functionality. To get the code to compile, we need to return a value from the body as we indicated we would in the function signature.
+
+STORING Matching Lines
+
+To finish this function, we need a way to store the matching lines that we want to return. For that, we can make a mutable vector before the 'for' loop and call the 'push' method to store a 'line' in the vector. After the 'for' loop, we return the vector, as shown below.
+
+Filename: src/lib.rs
+
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+
+    for line in contents.lines() {
+        if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+// This code is STORING the lines that match so we can return them.

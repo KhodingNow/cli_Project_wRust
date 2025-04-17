@@ -1,33 +1,61 @@
 use std::env;
+use std::fs;
 
 fn main() {
-   let args: Vec<String> = env::args().collect();
-   dbg!(args);
+    let args: Vec<String> = env::args().collect();
 
-// Saving argument values in Variables
+    let config = Config::new(&args).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {}", err);
+        std::process::exit(1);
+    });
 
-// fn main() {
-   let args: Vec<String> = env::args().collect();
+    let contents = fs::read_to_string(&config.file_path)
+        .expect("Should have been able to read the file");
 
-   let query = &args[1];
-   let file_path = &args[2];
+    let results = search(&config.query, &contents);
 
-   println!("Searching for {query}");
-   println!("IN file {file_path}");
-//}
+    for line in results {
+        println!("{}", line);
+    }
+}
 
-   use std::fs;
+struct Config {
+    query: String,
+    file_path: String,
+}
 
-// fn main() {
+impl Config {
+    fn new(args: &[String]) -> Result<Config, &str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
 
-// --snip-- 
+        let query = args[1].clone();
+        let file_path = args[2].clone();
 
-   println!("In file {file_path}");
+        Ok(Config { query, file_path })
+    }
+ }
 
-   let contents = fs::read_to_string(file_path)
-      .expect("Should have been able to read the file");
-
-   println!("With text: \n{contents}");
-//}
+fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 
 }
+
+
+// OR....alternative search fun is below
+
+// pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+//     let mut results = Vec::new();
+
+//     for line in contents.lines() {
+//         if line.contains(query) {
+//             results.push(line);
+//         }
+//     }
+
+//     results
+// }
