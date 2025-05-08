@@ -1,0 +1,21 @@
+We'll first examine how we can use closures to capture values from the environment they're defined in for later use. The SCENARIO is about a shirt company - every so often, our t-shirt company gives away an exclusive, limited edition shirt to someone on our mailing list as a promotion.
+People on the mailing list can optionally add their favourite colour to their profile. If the person chosen for the free shirt has their favourite colour set, thay get that colour shirt. If the person hasn't specified a favourite colour set, they get whatever colour the company currently has the most.
+There many ways to implement this, for this example we shall use an 'enum' called 'ShirtColour' that has the variants called Red and Blue.
+We represent the company's with an 'INventory' struct that has a field named 'shirts' that contains a'Vec<ShirtColour>' representing the shirtcolours currently in stock.
+The method 'giveaway' defined on 'Inventory' gets the optional shirt colour preference of the free shirt winner, and returns the shirt colour the person will get.
+
+# please reffer to code on VSCode.
+
+The store defined in 'main' has two blue shirts and one red shirt remaining to distribute for this limited-edition promotion.We call the 'giveaway' method for a user with a preference for a red shirt and a user without any preference.
+IN this code, we focus on closures:
+
+In the 'giveaway' method, we get the user preference as a parameter of type 'Option<ShirtColour>' and call the 'unwrap_or_else' method on 'user_preference'. The "unwrap_or_else' method on 'Option<T>' is defined by the standard library. It takes one argument: a closure without any arguments that returns a value 'T' (the sme type stored in the 'Some' of the 'Option<T>', in this case 'ShirtColour').
+If the 'Option<T>' is the 'Some' variant, the 'unwrap_or_else' returns the value from withing the 'Some'. If the 'Option<T>' is the 'None' variant, the '/unwrap_or_else calls the closure and returns the value returned by the closure.
+
+We specify the closure expression || 'self.most_stocked()' as the argument to to 'unwrap_or_else'. This is a closure that takes no parameters itself (if the closure had parameters, they would appear between the two vertical bars). The body of the closure calls 'self'most_stocked()'. We're defining the closure here, and the implementation of 'unwrap_or_else' will evaluate the closure later if the result is needed.
+
+NB: One interesting aspect here is that we have apassed a closure that calls 'self.most_stocked()' on the current 'Inventory' instance. The standard library didn't need to know anything about the 'Inventory' or 'ShirtColour' types we defined, or the logic we want to usein this scenario.
+The closure captures an immutable reference to the 'self Inventory' instance and passes it with the code we specify to the 'unwrap_or_else' method. 
+Functions, on the other hand, are not able to capture their environment this way.
+
+
