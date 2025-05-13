@@ -199,6 +199,158 @@ fn main() {
     println!("{list:#?}");
    //}
 
-   // The reason 'sort_by_key' is define to take an FnMut closure is that it calls the closure multiple times: once for each item in the slice. The closure |r| r.width doesn't capture. mutate, or move 
+   // The reason 'sort_by_key' is define to take an FnMut closure is that it calls the closure multiple times: once for each item in the slice. 
+   // The closure |r| r.width doesn't capture. mutate, or move anything out of its environment, so it meet the trait bound requirements.
+
+   // THE EXAMPLE below, will error: this is because the closure that implements just the FnOnce trait, because it moves a value out of the environment.
+   // The compiler won't let us use this closure with 'sort_by_key':
+
+   #[derive(Debug)]
+   struct Rectangle {
+    width: u32,
+    height: u32,
+   }
+
+   let mut sort_operations = vec![];
+   let value = String::from("closure called");
+
+   list.sort_by_key(|r| {
+        sort_operations.push(value);
+        r.width
+   });
+   println!("{list:#?}"); // this code will cause the compiler to complain
+
+// Fixing the code above:
+
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn main() {
+    let mut list = [
+        Rectangle { width: 10, height: 1},
+        Rectangle { width: 3, height: 6},
+        Rectangle { width: 10, height: 13},
+    ];
+
+    let mut num_sort_operations = 0;
+    list.sort_by_key(|r| {
+        num_sort_operations += 1;
+        r.width
+    });
+    println("{list:#?}, sorted in {num_sort_operations} operations");
+} // Using an FnMut closure with sort_by_key is allowed
+
+// THE ITERATOR trait and the next Method
+
+pub trait Iterator {
+    type Item;
+
+    fn next(&mut self) -> Option<Self::Item>;
+
+    // methods with default implementations elided
+
+    // the traint 'Iterator' from the std lib 
+    // it also has a type 'Item' and 'Self::Item' which define an ASSOCIATED TYPE.
+    // the Iterator trait requires to be implemented by one method: the 'next' method
+    // the method returns one item of the iterator at a time wrapped in 'Some' and, when the iteration is over, it returns None.
+}
+
+// calling the next method on iterators directly;
+
+#[test]
+fn iterator_demonstration() {
+    let v1 = vec![1, 2, 3];
+
+    let mut v1_iter = v1.iter();
+
+    assert_eq!(v1_iter.next(), Some(&1));
+    assert_eq!(v1_iter.next(), Some(&2));
+    assert_eq!(v1_iter.next(), Some(&3));
+    assert_eq!(v1_iter.next(), None);
+
+    // we needed to make v1_iter mutable: calling the next method on an iterator changes the internal state
+    // that the iterator uses to keep tract of where it is in the sequence. IN other words, this code cconsumes
+    // or uses up the iterator.Each call to next eats up an item from the iterator.
+    // We did not need to make v1_iter mutable when we used a 'for' loop because the loop takes ownership of of v1_iter and made it mutable behind he scenes
+    // Also, the values we get from the calls to next are immutable references to the values in the vector.
+    // THe iter method produces an iterator over immutable references. If 
+    //  If we want to create an iterator that takes ownership of v1 and returns owned values, we can call into_iter instead of iter. 
+    // Similarly, if we want to iterate over mutable references, we can call iter_mut instead of iter.
+
+}
+
+// Methods that consume the iterator:
+// they are called - consuming adapters - e.g the sum method
+
+#[test]
+fn iterator_sum() {
+    let v1 = vec![1, 2, 3];
+
+    let v1_iter = v1.iter();
+
+    let total: i32 = v1_iter.sum();
+
+    assert_eq!(total, 6);
+}
+
+// Using Closures that Capture Their Environment
+
+// - Many iterator adapters take closures as arguments, these will be closure that capture their environment
+// - below, we use a filter method that takes a closure. The closure gets an item from the iterator and retursn a 'bool' . If the closure
+// - returns a true, the value will be includedin the iteration produced by the filter
+// - If the closure retuens a false, the value won't be included
+
+#[derive(PartialEq, Debug)]
+struct Shoe {
+    size: u32,
+    style: String,    
+}
+
+fn shoes_in_size(shoes: Vec<Shoes>, shoes_size: u32) -> Vec<Shoe> {
+    shoes.into_iter().filter(|s| s.size == shoes_size).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn filters_by_size() {
+        let shoes = vec! [
+            Shoe {
+                size: 10,
+                style: String::from("amariFu"),
+            },
+            Shoe {
+                size: 13,
+                style: String::from("Imbadada"),
+            },
+            Shoe {
+                size: 11,
+                style: String::from("sleepers"),
+            },
+        ];
+
+            let in_my_size = shoes_in_size(shoes, 10);
+
+            assert_eq!(
+                in_my_size,
+                vec![
+                    Shoe {
+                        size: 10,
+                        style: String::from("amariFu")
+                    },
+
+                    Shoe {
+                        size: 11,
+                        style: String::from("sleepers")
+                    },
+                ]
+            );
+        }
+    }
 
 }
